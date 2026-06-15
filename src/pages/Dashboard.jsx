@@ -63,7 +63,7 @@ function DeltaChip({ delta }) {
   )
 }
 
-function StatCard({ icon: Icon, label, value, accent = '#4f46e5' }) {
+function StatCard({ icon: Icon, label, value, accent = '#C5A059' }) {
   return (
     <Card className="card-hover p-4">
       <div className="flex items-center gap-3">
@@ -71,8 +71,8 @@ function StatCard({ icon: Icon, label, value, accent = '#4f46e5' }) {
           <Icon size={20} />
         </div>
         <div className="min-w-0">
-          <div className="text-xs font-medium text-slate-500">{label}</div>
-          <div className="truncate text-xl font-bold text-slate-900">{value}</div>
+          <div className="text-[0.65rem] font-semibold uppercase tracking-[1px] text-slate-500">{label}</div>
+          <div className="truncate font-serif text-xl font-bold text-slate-900">{value}</div>
         </div>
       </div>
     </Card>
@@ -227,18 +227,19 @@ export default function Dashboard() {
       </div>
 
       {/* Hero */}
-      <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-brand via-indigo-600 to-sky-600 p-6 text-white shadow-lg shadow-brand/20 sm:p-8">
+      <div className="relative overflow-hidden border border-gold/30 bg-gradient-to-br from-navy via-[#0d2747] to-navy-dark p-6 text-white shadow-lg sm:p-8">
+        <span className="absolute left-0 top-0 h-full w-[3px] bg-gold" />
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-white/70">{greeting()} 👋</p>
-            <p className="mt-3 text-sm text-white/70">
-              Total tracked across {properties.length} {properties.length === 1 ? 'property' : 'properties'}
+            <p className="eyebrow">{greeting()}</p>
+            <p className="mt-4 text-[0.7rem] font-semibold uppercase tracking-[2px] text-white/50">
+              Portfolio total · {properties.length} {properties.length === 1 ? 'property' : 'properties'}
             </p>
-            <div className="mt-1 text-4xl font-extrabold tracking-tight sm:text-5xl">{formatCurrency(allTimeTotal)}</div>
+            <div className="mt-1 font-serif text-4xl font-bold tracking-tight sm:text-5xl">{formatCurrency(allTimeTotal)}</div>
           </div>
-          <div className="rounded-2xl bg-white/10 p-4 backdrop-blur sm:min-w-52">
-            <div className="text-xs font-medium text-white/70">Spent this month</div>
-            <div className="mt-1 text-2xl font-bold">{formatCurrency(thisMonth)}</div>
+          <div className="border border-white/10 bg-white/5 p-4 backdrop-blur sm:min-w-56">
+            <div className="text-[0.65rem] font-semibold uppercase tracking-[1.5px] text-white/50">Spent this month</div>
+            <div className="mt-1 font-serif text-2xl font-bold">{formatCurrency(thisMonth)}</div>
             <div className="mt-2">
               <DeltaChip delta={delta} />
             </div>
@@ -248,10 +249,10 @@ export default function Dashboard() {
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 gap-3 stagger lg:grid-cols-4">
-        <StatCard icon={Wallet} label={`Total spent (${rangeLabel})`} value={formatCurrency(total)} accent="#4f46e5" />
-        <StatCard icon={Receipt} label="Entries" value={String(scoped.length)} accent="#0ea5e9" />
-        <StatCard icon={TrendingUp} label="Avg / entry" value={formatCurrency(scoped.length ? total / scoped.length : 0)} accent="#10b981" />
-        <StatCard icon={Tag} label="Top category" value={byCategory[0]?.name || '—'} accent="#f59e0b" />
+        <StatCard icon={Wallet} label={`Total spent (${rangeLabel})`} value={formatCurrency(total)} accent="#B8862F" />
+        <StatCard icon={Receipt} label="Entries" value={String(scoped.length)} accent="#2F6F6B" />
+        <StatCard icon={TrendingUp} label="Avg / entry" value={formatCurrency(scoped.length ? total / scoped.length : 0)} accent="#9C5B33" />
+        <StatCard icon={Tag} label="Top category" value={byCategory[0]?.name || '—'} accent="#0A1828" />
       </div>
 
       {/* Budgets */}
@@ -282,15 +283,15 @@ export default function Dashboard() {
           <AreaChart data={monthly} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#4f46e5" stopOpacity={0.35} />
-                <stop offset="100%" stopColor="#4f46e5" stopOpacity={0} />
+                <stop offset="0%" stopColor="#C5A059" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="#C5A059" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eef2f7" />
             <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
             <YAxis tickFormatter={formatCompact} tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={48} />
             <Tooltip formatter={(v) => [formatCurrency(v), 'Spent']} contentStyle={tooltipStyle} />
-            <Area type="monotone" dataKey="total" stroke="#4f46e5" strokeWidth={2.5} fill="url(#g)" />
+            <Area type="monotone" dataKey="total" stroke="#C5A059" strokeWidth={2.5} fill="url(#g)" />
           </AreaChart>
         </ResponsiveContainer>
       </ChartCard>

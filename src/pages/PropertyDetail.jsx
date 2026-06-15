@@ -33,7 +33,7 @@ const tooltipStyle = {
   fontSize: 13,
 }
 
-function StatCard({ icon: Icon, label, value, accent = '#4f46e5' }) {
+function StatCard({ icon: Icon, label, value, accent = '#C5A059' }) {
   return (
     <Card className="p-4">
       <div className="flex items-center gap-3">
@@ -41,8 +41,8 @@ function StatCard({ icon: Icon, label, value, accent = '#4f46e5' }) {
           <Icon size={20} />
         </div>
         <div className="min-w-0">
-          <div className="text-xs font-medium text-slate-500">{label}</div>
-          <div className="truncate text-xl font-bold text-slate-900">{value}</div>
+          <div className="text-[0.65rem] font-semibold uppercase tracking-[1px] text-slate-500">{label}</div>
+          <div className="truncate font-serif text-xl font-bold text-slate-900">{value}</div>
         </div>
       </div>
     </Card>
@@ -155,10 +155,10 @@ export default function PropertyDetail() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard icon={Wallet} label="Total spent" value={formatCurrency(total)} accent="#4f46e5" />
-        <StatCard icon={CalendarDays} label="This month" value={formatCurrency(thisMonth)} accent="#0ea5e9" />
-        <StatCard icon={Receipt} label="Entries" value={String(items.length)} accent="#10b981" />
-        <StatCard icon={TrendingUp} label="Avg / entry" value={formatCurrency(items.length ? total / items.length : 0)} accent="#f59e0b" />
+        <StatCard icon={Wallet} label="Total spent" value={formatCurrency(total)} accent="#B8862F" />
+        <StatCard icon={CalendarDays} label="This month" value={formatCurrency(thisMonth)} accent="#0A1828" />
+        <StatCard icon={Receipt} label="Entries" value={String(items.length)} accent="#2F6F6B" />
+        <StatCard icon={TrendingUp} label="Avg / entry" value={formatCurrency(items.length ? total / items.length : 0)} accent="#9C5B33" />
       </div>
 
       {/* Charts */}
@@ -173,15 +173,15 @@ export default function PropertyDetail() {
                 <AreaChart data={monthly} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gd" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#4f46e5" stopOpacity={0.35} />
-                      <stop offset="100%" stopColor="#4f46e5" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#C5A059" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="#C5A059" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eef2f7" />
                   <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                   <YAxis tickFormatter={formatCompact} tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={48} />
                   <Tooltip formatter={(v) => [formatCurrency(v), 'Spent']} contentStyle={tooltipStyle} />
-                  <Area type="monotone" dataKey="total" stroke="#4f46e5" strokeWidth={2.5} fill="url(#gd)" />
+                  <Area type="monotone" dataKey="total" stroke="#C5A059" strokeWidth={2.5} fill="url(#gd)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

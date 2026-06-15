@@ -37,24 +37,24 @@ export const PAYMENT_METHODS = [
 
 // Stable colour per category for charts/legends.
 export const CATEGORY_COLORS = {
-  'Materials': '#4f46e5',
-  'Labor / Contractors': '#0ea5e9',
-  'Permits & Legal': '#8b5cf6',
-  'Utilities': '#14b8a6',
-  'Property Tax': '#f59e0b',
-  'Maintenance & Repairs': '#ef4444',
-  'Insurance': '#ec4899',
-  'Loan / EMI': '#6366f1',
-  'Brokerage / Marketing': '#10b981',
-  'Furnishing': '#f97316',
-  'Other': '#64748b',
+  'Materials': '#C5A059',
+  'Labor / Contractors': '#3B5A7A',
+  'Permits & Legal': '#6D6A8A',
+  'Utilities': '#2F6F6B',
+  'Property Tax': '#9C5B33',
+  'Maintenance & Repairs': '#B5673F',
+  'Insurance': '#7C8A5A',
+  'Loan / EMI': '#46618A',
+  'Brokerage / Marketing': '#A87B2E',
+  'Furnishing': '#8A6E4B',
+  'Other': '#7A7165',
 }
 
-// General palette for charts keyed by index (e.g. per-property bars).
+// Muted, luxury palette for charts keyed by index (e.g. per-property bars).
 export const CHART_PALETTE = [
-  '#4f46e5', '#0ea5e9', '#14b8a6', '#f59e0b', '#ef4444',
-  '#8b5cf6', '#ec4899', '#10b981', '#f97316', '#6366f1',
-  '#06b6d4', '#84cc16',
+  '#C5A059', '#0A1828', '#2F6F6B', '#9C5B33', '#3B5A7A',
+  '#A87B2E', '#6D6A8A', '#7C8A5A', '#B5673F', '#46618A',
+  '#8A6E4B', '#5A7D7C',
 ]
 
 export const colorForCategory = (cat, i = 0) =>

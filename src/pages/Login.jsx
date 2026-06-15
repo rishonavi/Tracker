@@ -41,14 +41,17 @@ export default function Login() {
   }
 
   return (
-    <div className="grid min-h-screen place-items-center bg-slate-100 px-4">
+    <div className="relative grid min-h-screen place-items-center bg-navy px-4">
+      <div className="noise-overlay" />
       <div className="w-full max-w-sm">
-        <div className="mb-6 flex flex-col items-center text-center">
-          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand text-white shadow-lg shadow-brand/30">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <div className="grid h-14 w-14 place-items-center bg-gold text-navy">
             <Wallet size={26} />
           </div>
-          <h1 className="mt-4 text-xl font-bold text-slate-900">Property Ledger</h1>
-          <p className="text-sm text-slate-500">
+          <p className="eyebrow mt-5">Private Ledger</p>
+          <h1 className="mt-2 font-serif text-2xl font-bold text-white">Property Ledger</h1>
+          <span className="mt-3 block h-[2px] w-12 bg-gold" />
+          <p className="mt-3 text-sm text-white/50">
             {mode === 'signin' ? 'Sign in to your expense tracker' : 'Create your account'}
           </p>
         </div>
@@ -77,15 +80,15 @@ export default function Login() {
               />
             </Field>
 
-            {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-            {info && <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{info}</p>}
+            {error && <p className="bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+            {info && <p className="bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{info}</p>}
 
             <Button type="submit" className="w-full" loading={busy}>
               {mode === 'signin' ? 'Sign in' : 'Create account'}
             </Button>
           </form>
 
-          <p className="mt-4 text-center text-sm text-slate-500">
+          <p className="mt-5 text-center text-sm text-slate-500">
             {mode === 'signin' ? "Don't have an account? " : 'Already have an account? '}
             <button
               type="button"
@@ -94,7 +97,7 @@ export default function Login() {
                 setError(null)
                 setInfo(null)
               }}
-              className="font-semibold text-brand hover:underline"
+              className="font-semibold text-gold hover:underline"
             >
               {mode === 'signin' ? 'Create one' : 'Sign in'}
             </button>
