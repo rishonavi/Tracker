@@ -1,4 +1,4 @@
-# Property Ledger — Expense Tracker
+# Offset — Property Expense Tracker
 
 A private web app to track expenses across your property portfolio. Log every
 cost against a property, see where the money goes with charts, attach receipt

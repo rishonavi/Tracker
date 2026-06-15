@@ -184,7 +184,7 @@ export default function Dashboard() {
         <h1 className="mb-6 text-2xl font-bold text-slate-900">Dashboard</h1>
         <EmptyState
           icon={Building2}
-          title="Welcome to Property Ledger"
+          title="Welcome to Offset"
           subtitle="Start by adding a property, then log expenses against it. Your charts and totals will appear here."
           action={
             <Link to="/properties" className="btn-primary">

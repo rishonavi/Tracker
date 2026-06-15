@@ -77,8 +77,8 @@ export default function Login() {
           <div className="grid h-14 w-14 place-items-center bg-gold text-navy">
             <Wallet size={26} />
           </div>
-          <p className="eyebrow mt-5">Private Ledger</p>
-          <h1 className="mt-2 font-serif text-2xl font-bold text-white">Property Ledger</h1>
+          <p className="eyebrow mt-5">Property Expenses</p>
+          <h1 className="mt-2 font-serif text-2xl font-bold text-white">Offset</h1>
           <span className="mt-3 block h-[2px] w-12 bg-gold" />
           <p className="mt-3 text-sm text-white/50">
             {mode === 'signin' ? 'Sign in to your expense tracker' : 'Create your account'}

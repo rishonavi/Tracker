@@ -4,7 +4,7 @@
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
 const SCOPE = 'https://www.googleapis.com/auth/drive.appdata'
-const FILE_NAME = 'property-ledger-backup.json'
+const FILE_NAME = 'offset-backup.json'
 
 export const driveConfigured = Boolean(CLIENT_ID)
 

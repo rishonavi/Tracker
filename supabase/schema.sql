@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
---  Property Ledger — Supabase schema
+--  Offset — Supabase schema
 --  Run this once in your Supabase project:
 --    Dashboard → SQL Editor → New query → paste this → Run
 -- ════════════════════════════════════════════════════════════════

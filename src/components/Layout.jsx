@@ -57,7 +57,7 @@ function Brand() {
         <Wallet size={18} />
       </div>
       <div className="leading-tight">
-        <div className="font-serif text-sm font-bold tracking-wide text-white">Property Ledger</div>
+        <div className="font-serif text-sm font-bold tracking-wide text-white">Offset</div>
         <div className="text-[10px] uppercase tracking-[2px] text-gold/70">Expense Tracker</div>
       </div>
     </div>
