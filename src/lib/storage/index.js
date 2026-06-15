@@ -7,5 +7,12 @@ import * as remote from './supabase'
 //   data:      getProperties / addProperty / updateProperty / deleteProperty
 //              getExpenses   / addExpense   / updateExpense   / deleteExpense
 //   receipts:  uploadReceipt(file) -> stored string, getReceiptUrl(stored) -> url
-export const isCloud = hasSupabase
-export const db = hasSupabase ? remote : local
+//
+// VITE_OPEN_ACCESS=true → skip login entirely and run on local browser storage,
+// so anyone can open the site and use it with no credentials. The login code
+// stays intact; remove the flag to require login again once the Supabase
+// Google/Apple setup is finished.
+const openAccess = String(import.meta.env.VITE_OPEN_ACCESS || '').toLowerCase() === 'true'
+
+export const isCloud = hasSupabase && !openAccess
+export const db = isCloud ? remote : local
