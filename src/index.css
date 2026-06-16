@@ -91,6 +91,27 @@ input:focus, textarea:focus, select:focus {
   outline: none !important;
 }
 
+/* Make native date/select/number controls follow the theme */
+:root { color-scheme: light; }
+.dark { color-scheme: dark; }
+
+/* Style <select> consistently (drop the native OS control, add a chevron) */
+select.field-input {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-size: 1.1rem;
+  padding-right: 2.25rem;
+}
+
+/* Drop number spinners (we use inputMode='decimal') */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type='number'] { -moz-appearance: textfield; appearance: textfield; }
+
 /* Navy→gold gradient text */
 .gradient-text {
   background: linear-gradient(to right, #0B1D3A 15%, #C5A059 100%);
@@ -151,7 +172,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 .dark .card { background-color: #0d2040; border-color: #1e3560; }
-.dark .field-input { background-color: #0d2040; border-color: #1e3560; color: #e8dfc8; }
+.dark .field-input { background-color: #0a1a33; border-color: #2a4878; color: #e8dfc8; }
 .dark .field-input::placeholder { color: #5a6a86; }
 .dark .btn-ghost { background-color: #0d2040; border-color: #1e3560; color: #e8dfc8; }
 .dark .btn-ghost:hover { border-color: #C5A059; color: #C5A059; }

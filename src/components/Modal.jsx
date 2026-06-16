@@ -21,7 +21,7 @@ export default function Modal({ open, onClose, title, children, maxWidth = 'max-
       onClick={onClose}
     >
       <div
-        className={`card my-8 flex max-h-[calc(100vh-4rem)] w-full ${maxWidth} flex-col overflow-hidden animate-fade-in`}
+        className={`card my-8 flex max-h-[90vh] w-full ${maxWidth} flex-col overflow-hidden animate-fade-in`}
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
