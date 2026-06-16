@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Paperclip, X } from 'lucide-react'
+import { Paperclip, X, Loader2, Sparkles } from 'lucide-react'
 import { INCOME_SOURCES, PAYMENT_METHODS } from '../lib/constants'
 import { currencySymbol, todayISO } from '../lib/format'
 import { db } from '../lib/storage'
@@ -22,6 +22,9 @@ export default function IncomeForm({ initial, properties, defaultPropertyId, onS
   const [receiptPreview, setReceiptPreview] = useState(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  const [scanning, setScanning] = useState(false)
+  const [scanPct, setScanPct] = useState(0)
+  const [scanMsg, setScanMsg] = useState(null)
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
@@ -45,6 +48,35 @@ export default function IncomeForm({ initial, properties, defaultPropertyId, onS
     setFile(null)
     setExistingReceipt(null)
     setReceiptPreview(null)
+    setScanMsg(null)
+  }
+
+  const runScan = async () => {
+    if (!file) return
+    setScanning(true)
+    setScanMsg(null)
+    setScanPct(0)
+    try {
+      const { extractText, parseReceipt } = await import('../lib/ocr')
+      const text = await extractText(file, (p) => setScanPct(Math.round(p * 100)))
+      const parsed = parseReceipt(text)
+      setForm((f) => ({
+        ...f,
+        amount: parsed.amount != null ? String(parsed.amount) : f.amount,
+        date: parsed.date || f.date,
+        payer: parsed.vendor || f.payer,
+      }))
+      const got = [parsed.amount != null && 'amount', parsed.date && 'date', parsed.vendor && 'payer'].filter(Boolean)
+      setScanMsg(
+        got.length
+          ? `Filled ${got.join(', ')} — please double-check.`
+          : 'Couldn’t read the details — please enter them manually.',
+      )
+    } catch {
+      setScanMsg('Scan failed — please enter details manually.')
+    } finally {
+      setScanning(false)
+    }
   }
 
   const submit = async (e) => {
@@ -175,24 +207,40 @@ export default function IncomeForm({ initial, properties, defaultPropertyId, onS
 
       <Field label="Proof / receipt" hint="JPG, PNG or PDF">
         {receiptPreview || existingReceipt ? (
-          <div className="flex items-center gap-3 border border-border-light bg-slate-50 px-3 py-2">
-            <Paperclip size={16} className="text-slate-400" />
-            <a
-              href={receiptPreview || '#'}
-              target="_blank"
-              rel="noreferrer"
-              className="flex-1 truncate text-sm font-medium text-gold hover:underline"
-            >
-              {file ? file.name : 'View attached file'}
-            </a>
-            <button
-              type="button"
-              onClick={clearReceipt}
-              className="grid h-7 w-7 place-items-center text-slate-400 hover:bg-slate-200 hover:text-slate-700"
-              title="Remove"
-            >
-              <X size={15} />
-            </button>
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 border border-border-light bg-slate-50 px-3 py-2">
+              <Paperclip size={16} className="text-slate-400" />
+              <a
+                href={receiptPreview || '#'}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 truncate text-sm font-medium text-gold hover:underline"
+              >
+                {file ? file.name : 'View attached file'}
+              </a>
+              <button
+                type="button"
+                onClick={clearReceipt}
+                className="grid h-7 w-7 place-items-center text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+                title="Remove"
+              >
+                <X size={15} />
+              </button>
+            </div>
+            {file && (
+              <button type="button" onClick={runScan} disabled={scanning} className="btn-ghost w-full">
+                {scanning ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" /> Reading… {scanPct}%
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={15} /> Scan to auto-fill
+                  </>
+                )}
+              </button>
+            )}
+            {scanMsg && <p className="text-xs text-slate-500">{scanMsg}</p>}
           </div>
         ) : (
           <input
