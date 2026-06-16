@@ -139,7 +139,7 @@ export default function Properties() {
         </div>
       )}
 
-      <Modal open={!!modal} onClose={() => setModal(null)} title={modal?.editing ? 'Edit property' : 'Add property'}>
+      <Modal open={!!modal} onClose={() => setModal(null)} title={modal?.editing ? 'Edit asset' : 'Add asset'} maxWidth="max-w-xl">
         {modal && <PropertyForm initial={modal.editing} onSubmit={onSubmit} onCancel={() => setModal(null)} />}
       </Modal>
     </div>

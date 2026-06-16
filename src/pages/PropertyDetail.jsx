@@ -300,7 +300,7 @@ export default function PropertyDetail() {
         open={!!expenseModal}
         onClose={() => setExpenseModal(null)}
         title={expenseModal?.editing ? 'Edit expense' : 'Add expense'}
-        maxWidth="max-w-2xl"
+        maxWidth="max-w-3xl"
       >
         {expenseModal && (
           <ExpenseForm
@@ -313,7 +313,7 @@ export default function PropertyDetail() {
         )}
       </Modal>
 
-      <Modal open={editProperty} onClose={() => setEditProperty(false)} title="Edit asset">
+      <Modal open={editProperty} onClose={() => setEditProperty(false)} title="Edit asset" maxWidth="max-w-xl">
         {editProperty && <PropertyForm initial={property} onSubmit={onPropertySubmit} onCancel={() => setEditProperty(false)} />}
       </Modal>
 
@@ -321,7 +321,7 @@ export default function PropertyDetail() {
         open={!!incomeModal}
         onClose={() => setIncomeModal(null)}
         title={incomeModal?.editing ? 'Edit income' : 'Add income'}
-        maxWidth="max-w-2xl"
+        maxWidth="max-w-3xl"
       >
         {incomeModal && (
           <IncomeForm

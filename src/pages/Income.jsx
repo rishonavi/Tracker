@@ -120,7 +120,7 @@ export default function Income() {
         </>
       )}
 
-      <Modal open={!!modal} onClose={() => setModal(null)} title={modal?.editing ? 'Edit income' : 'Add income'} maxWidth="max-w-2xl">
+      <Modal open={!!modal} onClose={() => setModal(null)} title={modal?.editing ? 'Edit income' : 'Add income'} maxWidth="max-w-3xl">
         {modal && (
           <IncomeForm
             initial={modal.editing}

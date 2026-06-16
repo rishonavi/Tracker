@@ -95,7 +95,7 @@ export default function Expenses() {
         open={!!modal}
         onClose={() => setModal(null)}
         title={modal?.editing ? 'Edit expense' : 'Add expense'}
-        maxWidth="max-w-2xl"
+        maxWidth="max-w-3xl"
       >
         {modal && (
           <ExpenseForm

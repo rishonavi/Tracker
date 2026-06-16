@@ -37,7 +37,7 @@ export default function PropertyForm({ initial, onSubmit, onCancel }) {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4">
+    <form onSubmit={submit} className="space-y-5">
       <Field label="Asset name" required>
         <Input value={form.name} onChange={set('name')} placeholder="e.g. Sea View Apartment · BMW X5 · Sunseeker 60" autoFocus />
       </Field>
@@ -80,7 +80,7 @@ export default function PropertyForm({ initial, onSubmit, onCancel }) {
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <div className="flex justify-end gap-2 pt-1">
+      <div className="flex justify-end gap-3 border-t border-border-light pt-5">
         <Button type="button" variant="ghost" onClick={onCancel}>
           Cancel
         </Button>

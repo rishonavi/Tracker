@@ -121,8 +121,8 @@ export default function IncomeForm({ initial, properties, defaultPropertyId, onS
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <form onSubmit={submit} className="space-y-5">
+      <div className="grid grid-cols-1 gap-x-5 gap-y-4 sm:grid-cols-2">
         <Field label="Property" required>
           <Select value={form.property_id} onChange={set('property_id')}>
             {properties.map((p) => (
@@ -288,7 +288,7 @@ export default function IncomeForm({ initial, properties, defaultPropertyId, onS
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <div className="flex justify-end gap-2 pt-1">
+      <div className="flex justify-end gap-3 border-t border-border-light pt-5">
         <Button type="button" variant="ghost" onClick={onCancel}>
           Cancel
         </Button>
