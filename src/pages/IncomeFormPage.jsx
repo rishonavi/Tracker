@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Plus, Banknote, Building2 } from 'lucide-react'
 import { useData } from '../context/DataContext'
@@ -10,6 +11,16 @@ export default function IncomeFormPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const { income, properties, loading, addIncome, updateIncome } = useData()
+
+  // Distinct payer names already used, for the autocomplete suggestions.
+  const payers = useMemo(() => {
+    const seen = new Map() // lowercased → original casing
+    for (const e of income) {
+      const v = (e.payer || '').trim()
+      if (v && !seen.has(v.toLowerCase())) seen.set(v.toLowerCase(), v)
+    }
+    return [...seen.values()].sort((a, b) => a.localeCompare(b))
+  }, [income])
 
   if (loading) return <Spinner />
 
@@ -66,6 +77,7 @@ export default function IncomeFormPage() {
         <IncomeForm
           initial={editing}
           properties={properties}
+          payers={payers}
           defaultPropertyId={params.get('asset') || ''}
           onSubmit={onSubmit}
           onCancel={goBack}

@@ -37,8 +37,14 @@ export default function FilterBar({ properties, value, onChange, categories = CA
           ))}
         </select>
 
-        <input type="date" className="field-input lg:col-span-2" value={value.from} onChange={set('from')} title="From date" />
-        <input type="date" className="field-input lg:col-span-2" value={value.to} onChange={set('to')} title="To date" />
+        <label className="flex flex-col gap-1 lg:col-span-2">
+          <span className="text-xs font-medium text-slate-500 lg:hidden">From date</span>
+          <input type="date" className="field-input" value={value.from} onChange={set('from')} title="From date" />
+        </label>
+        <label className="flex flex-col gap-1 lg:col-span-2">
+          <span className="text-xs font-medium text-slate-500 lg:hidden">To date</span>
+          <input type="date" className="field-input" value={value.to} onChange={set('to')} title="To date" />
+        </label>
       </div>
 
       {hasActiveFilters(value) && (

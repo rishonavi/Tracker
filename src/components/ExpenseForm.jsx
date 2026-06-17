@@ -5,7 +5,7 @@ import { currencySymbol, todayISO } from '../lib/format'
 import { db } from '../lib/storage'
 import { Field, Input, Select, Textarea, Button } from './ui'
 
-export default function ExpenseForm({ initial, properties, defaultPropertyId, onSubmit, onCancel }) {
+export default function ExpenseForm({ initial, properties, vendors = [], defaultPropertyId, onSubmit, onCancel }) {
   const [form, setForm] = useState({
     property_id: initial?.property_id || defaultPropertyId || (properties[0]?.id ?? ''),
     date: initial?.date || todayISO(),
@@ -190,7 +190,19 @@ export default function ExpenseForm({ initial, properties, defaultPropertyId, on
         </Field>
 
         <Field label="Vendor / Payee">
-          <Input value={form.vendor} onChange={set('vendor')} placeholder="e.g. Asian Paints" />
+          <Input
+            list="expense-vendors"
+            value={form.vendor}
+            onChange={set('vendor')}
+            placeholder="e.g. Asian Paints"
+          />
+          {vendors.length > 0 && (
+            <datalist id="expense-vendors">
+              {vendors.map((v) => (
+                <option key={v} value={v} />
+              ))}
+            </datalist>
+          )}
         </Field>
 
         <Field label="Payment method">

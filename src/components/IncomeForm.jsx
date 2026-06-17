@@ -5,7 +5,7 @@ import { currencySymbol, todayISO } from '../lib/format'
 import { db } from '../lib/storage'
 import { Field, Input, Select, Textarea, Button } from './ui'
 
-export default function IncomeForm({ initial, properties, defaultPropertyId, onSubmit, onCancel }) {
+export default function IncomeForm({ initial, properties, payers = [], defaultPropertyId, onSubmit, onCancel }) {
   const [form, setForm] = useState({
     property_id: initial?.property_id || defaultPropertyId || (properties[0]?.id ?? ''),
     date: initial?.date || todayISO(),
@@ -186,7 +186,19 @@ export default function IncomeForm({ initial, properties, defaultPropertyId, onS
         </Field>
 
         <Field label="Received from (tenant / payer)">
-          <Input value={form.payer} onChange={set('payer')} placeholder="e.g. Mr. Sharma" />
+          <Input
+            list="income-payers"
+            value={form.payer}
+            onChange={set('payer')}
+            placeholder="e.g. Mr. Sharma"
+          />
+          {payers.length > 0 && (
+            <datalist id="income-payers">
+              {payers.map((p) => (
+                <option key={p} value={p} />
+              ))}
+            </datalist>
+          )}
         </Field>
 
         <Field label="Payment method">

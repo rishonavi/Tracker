@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Plus, Receipt, Building2 } from 'lucide-react'
 import { useData } from '../context/DataContext'
@@ -10,6 +11,16 @@ export default function ExpenseFormPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const { expenses, properties, loading, addExpense, updateExpense } = useData()
+
+  // Distinct vendor names already used, for the autocomplete suggestions.
+  const vendors = useMemo(() => {
+    const seen = new Map() // lowercased → original casing
+    for (const e of expenses) {
+      const v = (e.vendor || '').trim()
+      if (v && !seen.has(v.toLowerCase())) seen.set(v.toLowerCase(), v)
+    }
+    return [...seen.values()].sort((a, b) => a.localeCompare(b))
+  }, [expenses])
 
   if (loading) return <Spinner />
 
@@ -66,6 +77,7 @@ export default function ExpenseFormPage() {
         <ExpenseForm
           initial={editing}
           properties={properties}
+          vendors={vendors}
           defaultPropertyId={params.get('asset') || ''}
           onSubmit={onSubmit}
           onCancel={goBack}
