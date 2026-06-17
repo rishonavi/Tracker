@@ -107,6 +107,14 @@ select.field-input {
   padding-right: 2.25rem;
 }
 
+/* Keep native date inputs from overflowing their box (iOS Safari sizes them
+   to their intrinsic content otherwise, pushing them outside the card). */
+input[type='date'].field-input {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 /* Drop number spinners (we use inputMode='decimal') */
 input[type='number']::-webkit-outer-spin-button,
 input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }

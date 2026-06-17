@@ -37,13 +37,13 @@ export default function FilterBar({ properties, value, onChange, categories = CA
           ))}
         </select>
 
-        <label className="flex flex-col gap-1 lg:col-span-2">
+        <label className="flex min-w-0 flex-col gap-1 lg:col-span-2">
           <span className="text-xs font-medium text-slate-500 lg:hidden">From date</span>
-          <input type="date" className="field-input" value={value.from} onChange={set('from')} title="From date" />
+          <input type="date" className="field-input min-w-0" value={value.from} onChange={set('from')} title="From date" />
         </label>
-        <label className="flex flex-col gap-1 lg:col-span-2">
+        <label className="flex min-w-0 flex-col gap-1 lg:col-span-2">
           <span className="text-xs font-medium text-slate-500 lg:hidden">To date</span>
-          <input type="date" className="field-input" value={value.to} onChange={set('to')} title="To date" />
+          <input type="date" className="field-input min-w-0" value={value.to} onChange={set('to')} title="To date" />
         </label>
       </div>
 
