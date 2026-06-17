@@ -86,16 +86,21 @@ the box. To enable the social buttons:
 
 The Google/Apple buttons appear automatically on the login screen in cloud mode.
 
-**Google Drive backup** lets each user connect their *own* Drive and store a
-private JSON backup of their data (in the hidden app-data folder), restorable on
-any device. Receipts stay in Supabase. To enable it:
+**Backup & restore** (on the **Reports** page) keeps a private JSON backup of
+your data, restorable on any device. Receipts stay in Supabase. Options:
 
-1. In Google Cloud, **enable the Google Drive API** and create an *OAuth 2.0 Web
-   client* (you can reuse the one above). Add your site to **Authorized
-   JavaScript origins**.
-2. Put the client ID in `.env` as `VITE_GOOGLE_CLIENT_ID`.
-3. A **"Cloud backup — Google Drive"** card appears on the **Reports** page with
-   *Back up* / *Restore* buttons.
+- **Backup file** — no setup: download a `.json` backup and keep it in iCloud
+  Drive, Dropbox, or anywhere; restore it on any device.
+- **Google Drive** — set `VITE_GOOGLE_CLIENT_ID` (enable the Drive API + an
+  OAuth Web client; add your site to Authorized JavaScript origins).
+- **Dropbox** — set `VITE_DROPBOX_APP_KEY` (Scoped app, App-folder access,
+  files.content.read/write; add your site as an OAuth redirect URI).
+- **OneDrive** — set `VITE_MS_CLIENT_ID` (Azure SPA app, implicit access tokens,
+  Files.ReadWrite.AppFolder; add your site as a redirect URI).
+
+Configured providers appear in the **Backup & restore** card; each connects in a
+popup and reads/writes a private `offset-backup.json` in your own account.
+(iCloud has no public web API for this — use the backup file there.)
 
 ---
 

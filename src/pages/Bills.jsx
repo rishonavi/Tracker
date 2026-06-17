@@ -5,19 +5,15 @@ import { useData } from '../context/DataContext'
 import { formatCurrency, formatDate } from '../lib/format'
 import { colorForCategory, colorForSource } from '../lib/constants'
 import { iconForAssetType } from '../lib/assetIcon'
-import { db } from '../lib/storage'
 import { Card, EmptyState, Spinner, Badge } from '../components/ui'
 import PageHeader from '../components/PageHeader'
-
-async function viewBill(stored) {
-  const url = await db.getReceiptUrl(stored)
-  if (url) window.open(url, '_blank', 'noopener')
-}
+import ReceiptViewer from '../components/ReceiptViewer'
 
 export default function Bills() {
   const { expenses, income, properties, loading, propertyNameById } = useData()
   const [assetId, setAssetId] = useState('')
   const [q, setQ] = useState('')
+  const [viewing, setViewing] = useState(null)
 
   const bills = useMemo(() => {
     const ex = expenses
@@ -129,7 +125,7 @@ export default function Bills() {
                   {g.list.map((b) => (
                     <button
                       key={`${b.kind}-${b.id}`}
-                      onClick={() => viewBill(b.receipt_url)}
+                      onClick={() => setViewing(b.receipt_url)}
                       className="flex w-full items-center gap-3 px-5 py-3 text-left transition hover:bg-slate-50/70"
                     >
                       <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-500">
@@ -159,6 +155,8 @@ export default function Bills() {
           })}
         </div>
       )}
+
+      {viewing && <ReceiptViewer stored={viewing} onClose={() => setViewing(null)} />}
     </div>
   )
 }

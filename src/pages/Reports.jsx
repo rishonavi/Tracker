@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { FileSpreadsheet, FileText, FileType, Upload, Loader2, CheckCircle2, AlertCircle, Cloud, UploadCloud, DownloadCloud } from 'lucide-react'
+import { FileSpreadsheet, FileText, FileType, Upload, Download, Loader2, CheckCircle2, AlertCircle, Cloud, UploadCloud, DownloadCloud } from 'lucide-react'
 import { useData } from '../context/DataContext'
 import { applyFilters, emptyFilters, sumAmount } from '../lib/filters'
 import { formatCurrency, formatDate } from '../lib/format'
@@ -12,7 +12,7 @@ import {
   parseSpreadsheet,
   rowToExpenseInput,
 } from '../lib/exports'
-import { driveConfigured, backupToDrive, restoreFromDrive } from '../lib/gdrive'
+import { cloudProviders } from '../lib/cloud'
 import { Card, Button, Spinner, EmptyState, Badge } from '../components/ui'
 import PageHeader from '../components/PageHeader'
 import FilterBar from '../components/FilterBar'
@@ -25,8 +25,10 @@ export default function Reports() {
   const [importing, setImporting] = useState(false)
   const [importMsg, setImportMsg] = useState(null)
   const fileRef = useRef(null)
-  const [driveBusy, setDriveBusy] = useState(false)
-  const [driveMsg, setDriveMsg] = useState(null)
+  const backupFileRef = useRef(null)
+  const [cloudBusy, setCloudBusy] = useState(false)
+  const [cloudMsg, setCloudMsg] = useState(null)
+  const [providerId, setProviderId] = useState(cloudProviders[0]?.id || '')
 
   const filtered = useMemo(() => applyFilters(expenses, filters), [expenses, filters])
   const total = useMemo(() => sumAmount(filtered), [filtered])
@@ -89,98 +91,141 @@ export default function Reports() {
     }
   }
 
-  const handleBackup = async () => {
-    setDriveBusy(true)
-    setDriveMsg(null)
-    try {
-      await backupToDrive({ version: 1, exportedAt: new Date().toISOString(), properties, expenses, income })
-      setDriveMsg({
-        ok: true,
-        text: `Backed up ${properties.length} assets, ${expenses.length} expenses and ${income.length} income entries to Google Drive.`,
+  const buildPayload = () => ({
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    properties,
+    expenses,
+    income,
+  })
+
+  // Recreate assets/expenses/income from a backup object (matches assets by
+  // name; additive). Shared by every cloud provider and the file restore.
+  const importBackup = async (data) => {
+    const oldIdToName = new Map((data.properties || []).map((p) => [p.id, p.name]))
+    const nameToId = new Map(properties.map((p) => [p.name.trim().toLowerCase(), p.id]))
+    let createdProps = 0
+    let addedExp = 0
+    let addedInc = 0
+    for (const p of data.properties || []) {
+      const key = (p.name || '').trim().toLowerCase()
+      if (!key) continue
+      if (!nameToId.has(key)) {
+        const np = await addProperty({
+          name: p.name,
+          type: p.type || 'Other',
+          address: p.address || '',
+          notes: p.notes || '',
+          monthly_budget: p.monthly_budget ?? null,
+        })
+        nameToId.set(key, np.id)
+        createdProps += 1
+      }
+    }
+    for (const e of data.expenses || []) {
+      const pid = nameToId.get((oldIdToName.get(e.property_id) || '').trim().toLowerCase())
+      if (!pid) continue
+      await addExpense({
+        property_id: pid,
+        date: e.date,
+        amount: Number(e.amount) || 0,
+        category: e.category || 'Other',
+        vendor: e.vendor || '',
+        payment_method: e.payment_method || '',
+        status: e.status || 'paid',
+        due_date: e.due_date || null,
+        tax: e.tax ?? null,
+        description: e.description || '',
+        receipt_url: null,
       })
+      addedExp += 1
+    }
+    for (const e of data.income || []) {
+      const pid = nameToId.get((oldIdToName.get(e.property_id) || '').trim().toLowerCase())
+      if (!pid) continue
+      await addIncome({
+        property_id: pid,
+        date: e.date,
+        amount: Number(e.amount) || 0,
+        source: e.source || 'Other',
+        payer: e.payer || '',
+        payment_method: e.payment_method || '',
+        status: e.status || 'received',
+        due_date: e.due_date || null,
+        tax: e.tax ?? null,
+        description: e.description || '',
+        receipt_url: null,
+      })
+      addedInc += 1
+    }
+    return { createdProps, addedExp, addedInc }
+  }
+
+  const provider = cloudProviders.find((p) => p.id === providerId)
+
+  const cloudBackup = async () => {
+    if (!provider) return
+    setCloudBusy(true)
+    setCloudMsg(null)
+    try {
+      await provider.backup(buildPayload())
+      setCloudMsg({ ok: true, text: `Backed up your data to ${provider.label}.` })
     } catch (err) {
-      setDriveMsg({ ok: false, text: err?.message || String(err) })
+      setCloudMsg({ ok: false, text: err?.message || String(err) })
     } finally {
-      setDriveBusy(false)
+      setCloudBusy(false)
     }
   }
 
-  const handleRestore = async () => {
-    if (!window.confirm('Restore adds the records from your Google Drive backup to this account. Continue?')) return
-    setDriveBusy(true)
-    setDriveMsg(null)
+  const cloudRestore = async () => {
+    if (!provider) return
+    if (!window.confirm(`Restore adds the records from your ${provider.label} backup to this account. Continue?`)) return
+    setCloudBusy(true)
+    setCloudMsg(null)
     try {
-      const data = await restoreFromDrive()
+      const data = await provider.restore()
       if (!data) {
-        setDriveMsg({ ok: false, text: 'No backup found in your Google Drive.' })
+        setCloudMsg({ ok: false, text: `No backup found in your ${provider.label}.` })
         return
       }
-      const oldIdToName = new Map((data.properties || []).map((p) => [p.id, p.name]))
-      const nameToId = new Map(properties.map((p) => [p.name.trim().toLowerCase(), p.id]))
-      let createdProps = 0
-      let addedExp = 0
-      let addedInc = 0
-      for (const p of data.properties || []) {
-        const key = (p.name || '').trim().toLowerCase()
-        if (!key) continue
-        if (!nameToId.has(key)) {
-          const np = await addProperty({
-            name: p.name,
-            type: p.type || 'Other',
-            address: p.address || '',
-            notes: p.notes || '',
-            monthly_budget: p.monthly_budget ?? null,
-          })
-          nameToId.set(key, np.id)
-          createdProps += 1
-        }
-      }
-      for (const e of data.expenses || []) {
-        const nm = (oldIdToName.get(e.property_id) || '').trim().toLowerCase()
-        const pid = nameToId.get(nm)
-        if (!pid) continue
-        await addExpense({
-          property_id: pid,
-          date: e.date,
-          amount: Number(e.amount) || 0,
-          category: e.category || 'Other',
-          vendor: e.vendor || '',
-          payment_method: e.payment_method || '',
-          status: e.status || 'paid',
-          due_date: e.due_date || null,
-          tax: e.tax ?? null,
-          description: e.description || '',
-          receipt_url: null,
-        })
-        addedExp += 1
-      }
-      for (const e of data.income || []) {
-        const nm = (oldIdToName.get(e.property_id) || '').trim().toLowerCase()
-        const pid = nameToId.get(nm)
-        if (!pid) continue
-        await addIncome({
-          property_id: pid,
-          date: e.date,
-          amount: Number(e.amount) || 0,
-          source: e.source || 'Other',
-          payer: e.payer || '',
-          payment_method: e.payment_method || '',
-          status: e.status || 'received',
-          due_date: e.due_date || null,
-          tax: e.tax ?? null,
-          description: e.description || '',
-          receipt_url: null,
-        })
-        addedInc += 1
-      }
-      setDriveMsg({
+      const { createdProps, addedExp, addedInc } = await importBackup(data)
+      setCloudMsg({
         ok: true,
-        text: `Restored ${addedExp} expenses, ${addedInc} income${createdProps ? `, created ${createdProps} assets` : ''} from Drive.`,
+        text: `Restored ${addedExp} expenses, ${addedInc} income${createdProps ? `, created ${createdProps} assets` : ''} from ${provider.label}.`,
       })
     } catch (err) {
-      setDriveMsg({ ok: false, text: err?.message || String(err) })
+      setCloudMsg({ ok: false, text: err?.message || String(err) })
     } finally {
-      setDriveBusy(false)
+      setCloudBusy(false)
+    }
+  }
+
+  const downloadBackup = () => {
+    const blob = new Blob([JSON.stringify(buildPayload(), null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${baseName}-backup.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const restoreFromFile = async (file) => {
+    if (!file) return
+    setCloudBusy(true)
+    setCloudMsg(null)
+    try {
+      const data = JSON.parse(await file.text())
+      const { createdProps, addedExp, addedInc } = await importBackup(data)
+      setCloudMsg({
+        ok: true,
+        text: `Restored ${addedExp} expenses, ${addedInc} income${createdProps ? `, created ${createdProps} assets` : ''} from file.`,
+      })
+    } catch (err) {
+      setCloudMsg({ ok: false, text: `Could not read backup file: ${err?.message || err}` })
+    } finally {
+      setCloudBusy(false)
+      if (backupFileRef.current) backupFileRef.current.value = ''
     }
   }
 
@@ -248,43 +293,73 @@ export default function Reports() {
         </Card>
       </div>
 
-      {/* Cloud backup — Google Drive */}
+      {/* Backup & restore */}
       <Card className="p-5">
         <div className="flex items-center gap-2">
           <Cloud size={16} className="text-slate-500" />
-          <h3 className="text-sm font-semibold text-slate-700">Cloud backup — Google Drive</h3>
+          <h3 className="text-sm font-semibold text-slate-700">Backup &amp; restore</h3>
         </div>
-        {driveConfigured ? (
-          <>
-            <p className="mt-1 text-xs text-slate-500">
-              Connect your own Google Drive to keep a private backup of your properties &amp; expenses,
-              and restore it on any device. (Receipts stay in Supabase.)
+
+        {cloudProviders.length > 0 ? (
+          <div className="mt-3">
+            <p className="text-xs text-slate-500">
+              Connect a cloud account to keep a private backup of your assets, expenses &amp; income, and restore it
+              on any device. (Receipts stay in Supabase.)
             </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Button variant="ghost" onClick={handleBackup} loading={driveBusy}>
-                {!driveBusy && <UploadCloud size={16} className="text-emerald-600" />} Back up to Drive
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <select className="field-input w-auto" value={providerId} onChange={(e) => setProviderId(e.target.value)}>
+                {cloudProviders.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+              <Button variant="ghost" onClick={cloudBackup} loading={cloudBusy}>
+                {!cloudBusy && <UploadCloud size={16} className="text-emerald-600" />} Back up
               </Button>
-              <Button variant="ghost" onClick={handleRestore} loading={driveBusy}>
-                {!driveBusy && <DownloadCloud size={16} className="text-sky-600" />} Restore from Drive
+              <Button variant="ghost" onClick={cloudRestore} loading={cloudBusy}>
+                {!cloudBusy && <DownloadCloud size={16} className="text-sky-600" />} Restore
               </Button>
             </div>
-            {driveMsg && (
-              <div
-                className={`mt-3 flex items-start gap-2 px-3 py-2 text-sm ${
-                  driveMsg.ok ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
-                }`}
-              >
-                {driveMsg.ok ? <CheckCircle2 size={16} className="mt-0.5 shrink-0" /> : <AlertCircle size={16} className="mt-0.5 shrink-0" />}
-                {driveMsg.text}
-              </div>
-            )}
-          </>
+          </div>
         ) : (
-          <p className="mt-1 text-xs text-slate-500">
-            Add <code className="bg-slate-100 px-1">VITE_GOOGLE_CLIENT_ID</code> to your{' '}
-            <code className="bg-slate-100 px-1">.env</code> (and enable the Drive API in Google Cloud) to connect
-            your Google Drive. See the README.
+          <p className="mt-2 text-xs text-slate-500">
+            Connect a cloud account by adding a client ID — Google Drive (<code className="bg-slate-100 px-1">VITE_GOOGLE_CLIENT_ID</code>),
+            Dropbox (<code className="bg-slate-100 px-1">VITE_DROPBOX_APP_KEY</code>) or OneDrive (<code className="bg-slate-100 px-1">VITE_MS_CLIENT_ID</code>).
+            See the README. You can still use a backup file below.
           </p>
+        )}
+
+        <div className="mt-4 border-t border-slate-200 pt-4">
+          <p className="text-xs text-slate-500">
+            Or use a <strong>backup file</strong> — download it and keep it in iCloud Drive, Dropbox or anywhere; restore it on any device.
+          </p>
+          <input
+            ref={backupFileRef}
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            onChange={(e) => restoreFromFile(e.target.files?.[0])}
+          />
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button variant="ghost" onClick={downloadBackup}>
+              <Download size={16} className="text-slate-600" /> Download backup
+            </Button>
+            <Button variant="ghost" onClick={() => backupFileRef.current?.click()} loading={cloudBusy}>
+              {!cloudBusy && <Upload size={16} />} Restore from file
+            </Button>
+          </div>
+        </div>
+
+        {cloudMsg && (
+          <div
+            className={`mt-3 flex items-start gap-2 px-3 py-2 text-sm ${
+              cloudMsg.ok ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+            }`}
+          >
+            {cloudMsg.ok ? <CheckCircle2 size={16} className="mt-0.5 shrink-0" /> : <AlertCircle size={16} className="mt-0.5 shrink-0" />}
+            {cloudMsg.text}
+          </div>
         )}
       </Card>
 

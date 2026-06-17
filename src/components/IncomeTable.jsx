@@ -1,16 +1,13 @@
+import { useState } from 'react'
 import { Paperclip, Pencil, Trash2 } from 'lucide-react'
 import { colorForSource } from '../lib/constants'
 import { formatCurrency, formatDate } from '../lib/format'
-import { db } from '../lib/storage'
 import { Badge } from './ui'
 import PaymentChip from './PaymentChip'
-
-async function viewReceipt(stored) {
-  const url = await db.getReceiptUrl(stored)
-  if (url) window.open(url, '_blank', 'noopener')
-}
+import ReceiptViewer from './ReceiptViewer'
 
 export default function IncomeTable({ income, propertyNameById, onEdit, onDelete }) {
+  const [viewing, setViewing] = useState(null)
   const confirmDelete = (e) => {
     if (window.confirm(`Delete this ${formatCurrency(e.amount)} income entry? This cannot be undone.`)) {
       onDelete(e.id)
@@ -47,7 +44,7 @@ export default function IncomeTable({ income, propertyNameById, onEdit, onDelete
                   <div className="flex items-center gap-1.5">
                     {e.payer || <span className="text-slate-300">—</span>}
                     {e.receipt_url && (
-                      <button onClick={() => viewReceipt(e.receipt_url)} className="text-slate-400 transition hover:text-gold" title="View proof">
+                      <button onClick={() => setViewing(e.receipt_url)} className="text-slate-400 transition hover:text-gold" title="View proof">
                         <Paperclip size={14} />
                       </button>
                     )}
@@ -96,7 +93,7 @@ export default function IncomeTable({ income, propertyNameById, onEdit, onDelete
               <PaymentChip entry={e} kind="income" />
               {e.payer && <span className="text-xs text-slate-500">{e.payer}</span>}
               {e.receipt_url && (
-                <button onClick={() => viewReceipt(e.receipt_url)} className="inline-flex items-center gap-1 text-xs text-gold">
+                <button onClick={() => setViewing(e.receipt_url)} className="inline-flex items-center gap-1 text-xs text-gold">
                   <Paperclip size={12} /> Proof
                 </button>
               )}
@@ -113,6 +110,8 @@ export default function IncomeTable({ income, propertyNameById, onEdit, onDelete
           </div>
         ))}
       </div>
+
+      {viewing && <ReceiptViewer stored={viewing} onClose={() => setViewing(null)} />}
     </>
   )
 }
