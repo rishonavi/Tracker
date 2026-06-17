@@ -153,7 +153,7 @@ function guessTax(lines) {
 
 // Best-effort structured fields from receipt text. The user verifies/edits.
 export function parseReceipt(text) {
-  const out = { amount: null, date: null, vendor: null, tax: null }
+  const out = { amount: null, date: null, vendor: null, tax: null, category: null }
   if (!text) return out
   const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
   out.amount = guessAmount(lines)
@@ -161,4 +161,110 @@ export function parseReceipt(text) {
   out.vendor = guessVendor(lines)
   out.tax = guessTax(lines)
   return out
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// AI-assisted scanning — sends the receipt to a Claude vision model server-side
+// (api/scan-receipt) for far more accurate reading, with on-device OCR as a
+// graceful fallback when the API isn't configured / reachable / the file is too
+// large.
+// ───────────────────────────────────────────────────────────────────────────
+
+const AI_ENDPOINT = '/api/scan-receipt'
+const MAX_B64_BYTES = 4_400_000 // stay under Vercel's ~4.5 MB request-body limit
+
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer)
+  let binary = ''
+  const chunk = 0x8000
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk))
+  }
+  return btoa(binary)
+}
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      resolve(img)
+    }
+    img.onerror = (e) => {
+      URL.revokeObjectURL(url)
+      reject(e)
+    }
+    img.src = url
+  })
+}
+
+// Downscale a photo and re-encode as JPEG so the upload is small and quick.
+async function imageToBase64(file, maxDim = 1600) {
+  try {
+    const img = await loadImage(file)
+    let { width, height } = img
+    const scale = Math.min(1, maxDim / Math.max(width, height || 1))
+    width = Math.max(1, Math.round(width * scale))
+    height = Math.max(1, Math.round(height * scale))
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.82)
+    return { media_type: 'image/jpeg', data: dataUrl.split(',')[1] }
+  } catch {
+    // Couldn't decode (e.g. HEIC) — send the original bytes as-is.
+    const data = arrayBufferToBase64(await file.arrayBuffer())
+    return { media_type: file.type || 'image/jpeg', data }
+  }
+}
+
+async function prepareForUpload(file) {
+  const type = file.type || ''
+  const name = (file.name || '').toLowerCase()
+  if (type === 'application/pdf' || name.endsWith('.pdf')) {
+    const data = arrayBufferToBase64(await file.arrayBuffer())
+    if (data.length > MAX_B64_BYTES) return null
+    return { kind: 'document', media_type: 'application/pdf', data }
+  }
+  const img = await imageToBase64(file)
+  if (!img?.data || img.data.length > MAX_B64_BYTES) return null
+  return { kind: 'image', media_type: img.media_type, data: img.data }
+}
+
+async function scanWithAI(file) {
+  const payload = await prepareForUpload(file)
+  if (!payload) return null // too big / unreadable → fall back to OCR
+  const res = await fetch(AI_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) return null // 501 not-configured, or any error → OCR fallback
+  const d = await res.json().catch(() => null)
+  if (!d) return null
+  const hit = d.amount != null || d.tax != null || d.date || d.vendor || d.category
+  if (!hit) return null
+  return {
+    amount: d.amount ?? null,
+    tax: d.tax ?? null,
+    date: d.date || null,
+    vendor: d.vendor || null,
+    category: d.category || null,
+  }
+}
+
+// Public entry point used by the forms. Tries the accurate AI vision reader
+// first, then falls back to on-device OCR + heuristics. Always resolves with
+// { amount, tax, date, vendor, category, source }.
+export async function scanReceipt(file, onProgress) {
+  try {
+    const ai = await scanWithAI(file)
+    if (ai) return { ...ai, source: 'ai' }
+  } catch {
+    /* network/parse error → fall back to OCR below */
+  }
+  const text = await extractText(file, onProgress)
+  return { ...parseReceipt(text), source: 'ocr' }
 }

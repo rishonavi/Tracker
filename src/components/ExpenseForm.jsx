@@ -61,21 +61,22 @@ export default function ExpenseForm({ initial, properties, defaultPropertyId, on
     setScanMsg(null)
     setScanPct(0)
     try {
-      const { extractText, parseReceipt } = await import('../lib/ocr')
-      const text = await extractText(file, (p) => setScanPct(Math.round(p * 100)))
-      const parsed = parseReceipt(text)
+      const { scanReceipt } = await import('../lib/ocr')
+      const parsed = await scanReceipt(file, (p) => setScanPct(Math.round(p * 100)))
       setForm((f) => ({
         ...f,
         amount: parsed.amount != null ? String(parsed.amount) : f.amount,
         tax: parsed.tax != null ? String(parsed.tax) : f.tax,
         date: parsed.date || f.date,
         vendor: parsed.vendor || f.vendor,
+        category: parsed.category || f.category,
       }))
       const got = [
         parsed.amount != null && 'amount',
         parsed.tax != null && 'tax',
         parsed.date && 'date',
         parsed.vendor && 'vendor',
+        parsed.category && 'category',
       ].filter(Boolean)
       setScanMsg(
         got.length
@@ -265,7 +266,8 @@ export default function ExpenseForm({ initial, properties, defaultPropertyId, on
               <button type="button" onClick={runScan} disabled={scanning} className="btn-ghost w-full">
                 {scanning ? (
                   <>
-                    <Loader2 size={15} className="animate-spin" /> Reading… {scanPct}%
+                    <Loader2 size={15} className="animate-spin" />
+                    {scanPct > 0 ? ` Reading… ${scanPct}%` : ' Reading…'}
                   </>
                 ) : (
                   <>

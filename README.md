@@ -14,6 +14,7 @@ Storage) as the cloud backend.
 - **Properties** — add each property; every expense is logged against one.
 - **Expenses** — date, amount, category, vendor, payment method, notes.
 - **Receipts** — attach a photo/PDF of the bill to any expense.
+- **Scan to auto-fill** — read a receipt's amount, tax, date, vendor and category automatically (AI vision when configured, on-device OCR otherwise).
 - **Dashboard** — totals, 12-month trend, spend by category, spend by property.
 - **Filter & search** — by property, category, date range, or free text.
 - **Export** — Excel (`.xlsx`), CSV, or a formatted PDF report of any filtered view.
@@ -104,6 +105,30 @@ popup and reads/writes a private `offset-backup.json` in your own account.
 
 ---
 
+## Receipt scanning (auto-fill)
+
+When adding an expense or income, attach a bill photo/PDF and press **Scan to
+auto-fill** — the amount, tax, date, vendor and (for expenses) category are read
+off the receipt for you to confirm.
+
+There are two readers, and the app picks the best one available automatically:
+
+1. **AI vision (accurate, recommended).** Set an `ANTHROPIC_API_KEY` environment
+   variable on your host and the app reads receipts with Claude's vision model —
+   it copes with angled photos, faint thermal prints, handwriting and non-English
+   bills, and maps the spend onto one of your categories. The key is used only by
+   the serverless function in [`api/`](./api/scan-receipt.js); it is **never**
+   shipped to the browser (note there is no `VITE_` prefix). Optionally set
+   `SCAN_MODEL` to choose a cheaper/faster model.
+2. **On-device OCR (free, zero setup).** With no API key, scanning falls back to
+   in-browser OCR (Tesseract) plus heuristics — handy but less accurate.
+
+> The `/api` function runs automatically on Vercel (and any host that supports
+> Node serverless functions). On a purely static host it won't run, so scanning
+> will use the on-device OCR fallback.
+
+---
+
 ## Scripts
 
 | Command           | What it does                          |
@@ -150,6 +175,8 @@ src/
   context/          AuthContext, DataContext
   components/       Layout, forms, table, charts UI, primitives
   pages/            Dashboard, Properties, Expenses, Reports, Login
+api/
+  scan-receipt.js   serverless function: reads receipts with Claude vision
 supabase/
   schema.sql        run this in Supabase to set up the database
 ```

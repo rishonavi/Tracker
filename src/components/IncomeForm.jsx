@@ -60,9 +60,8 @@ export default function IncomeForm({ initial, properties, defaultPropertyId, onS
     setScanMsg(null)
     setScanPct(0)
     try {
-      const { extractText, parseReceipt } = await import('../lib/ocr')
-      const text = await extractText(file, (p) => setScanPct(Math.round(p * 100)))
-      const parsed = parseReceipt(text)
+      const { scanReceipt } = await import('../lib/ocr')
+      const parsed = await scanReceipt(file, (p) => setScanPct(Math.round(p * 100)))
       setForm((f) => ({
         ...f,
         amount: parsed.amount != null ? String(parsed.amount) : f.amount,
@@ -263,7 +262,8 @@ export default function IncomeForm({ initial, properties, defaultPropertyId, onS
               <button type="button" onClick={runScan} disabled={scanning} className="btn-ghost w-full">
                 {scanning ? (
                   <>
-                    <Loader2 size={15} className="animate-spin" /> Reading… {scanPct}%
+                    <Loader2 size={15} className="animate-spin" />
+                    {scanPct > 0 ? ` Reading… ${scanPct}%` : ' Reading…'}
                   </>
                 ) : (
                   <>
