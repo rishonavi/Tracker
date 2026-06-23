@@ -15,6 +15,7 @@ Storage) as the cloud backend.
 - **Expenses** — date, amount, category, vendor, payment method, notes.
 - **Receipts** — attach a photo/PDF of the bill to any expense.
 - **Scan to auto-fill** — read a receipt's amount, tax, date, vendor and category automatically (AI vision when configured, on-device OCR otherwise).
+- **Import bills from Gmail** — connect Gmail (read-only); Offset finds recent invoice/receipt emails, Gemini extracts the details, and you add them with one tap.
 - **Vendor/payer autocomplete** — fields suggest names you've already used.
 - **Quick actions** — one-tap *mark paid/received* and *duplicate* on any entry (a fast way to re-log recurring rent/EMI/utilities).
 - **ROI & yield** — add an asset value to see gross/net rental yield and total ROI per asset.
@@ -134,6 +135,33 @@ There are two readers, and the app picks the best one available automatically:
 > The `/api` function runs automatically on Vercel (and any host that supports
 > Node serverless functions). On a purely static host it won't run, so scanning
 > will use the on-device OCR fallback.
+
+---
+
+## Import bills from Gmail (optional)
+
+The **Import from Gmail** page connects your Gmail (read-only), finds recent
+emails with invoice/receipt attachments, reads each one with the Gemini scanner,
+and shows them in a review list — pick the asset, confirm the amount/date, and
+add. Everything runs in your browser with your own Google login; nothing is
+stored on a server.
+
+Setup (reuses `VITE_GOOGLE_CLIENT_ID`):
+
+1. In [Google Cloud](https://console.cloud.google.com): **APIs & Services →
+   Library** → enable the **Gmail API** (and the **Google Drive API** if you also
+   want backup).
+2. **OAuth consent screen** → add the scope
+   `https://www.googleapis.com/auth/gmail.readonly`, and add your Google account
+   as a **Test user**.
+3. **Credentials → OAuth client ID (Web)** → add your site to **Authorized
+   JavaScript origins** → set `VITE_GOOGLE_CLIENT_ID` in your host → redeploy.
+4. Make sure `GEMINI_API_KEY` is set (the import uses the same `/api/scan-receipt`
+   reader).
+
+> `gmail.readonly` is a Google **restricted** scope. In "Testing" mode it works
+> for you and any test users you add; letting the general public connect would
+> require Google's restricted-scope security assessment.
 
 ---
 

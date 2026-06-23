@@ -6,6 +6,7 @@ import {
   Receipt,
   Banknote,
   FileText,
+  MailPlus,
   PieChart,
   LogOut,
   Menu,
@@ -26,6 +27,7 @@ const NAV = [
   { to: '/expenses', label: 'Expenses', icon: Receipt },
   { to: '/income', label: 'Income', icon: Banknote },
   { to: '/bills', label: 'Bills', icon: FileText },
+  { to: '/import', label: 'Import from Gmail', icon: MailPlus },
   { to: '/reports', label: 'Reports & Export', icon: PieChart },
 ]
 

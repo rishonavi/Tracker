@@ -16,6 +16,7 @@ const ExpenseFormPage = lazy(() => import('./pages/ExpenseFormPage'))
 const Income = lazy(() => import('./pages/Income'))
 const IncomeFormPage = lazy(() => import('./pages/IncomeFormPage'))
 const Bills = lazy(() => import('./pages/Bills'))
+const ImportBills = lazy(() => import('./pages/ImportBills'))
 const Reports = lazy(() => import('./pages/Reports'))
 
 export default function App() {
@@ -58,6 +59,7 @@ export default function App() {
         <Route path="income/new" element={<IncomeFormPage />} />
         <Route path="income/:id/edit" element={<IncomeFormPage />} />
         <Route path="bills" element={<Bills />} />
+        <Route path="import" element={<ImportBills />} />
         <Route path="reports" element={<Reports />} />
       </Route>
 
